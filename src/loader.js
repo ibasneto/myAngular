@@ -3,15 +3,20 @@ function setupModuleLoader(window) {
     return obj[name] || (obj[name] = factory());
   }
   function createModule(name, requires, modules) {
+    function invokeLater(method) {
+      return function() {
+        moduleInstance._invokeQueue.push([method, arguments]);
+        return moduleInstance;
+      };
+    }
     if (name === 'hasOwnProperty') {
       throw 'hasOwnProperty is not a valid module name';
     }
     var moduleInstance = {
       name: name,
       requires: requires,
-      constant: function (key, value) {
-        moduleInstance._invokeQueue.push(['constant', [key, value]]);
-      },
+      constant: invokeLater('constant'),
+      provider: invokeLater('provider'),
       _invokeQueue: []
     };
     modules[name] = moduleInstance;
