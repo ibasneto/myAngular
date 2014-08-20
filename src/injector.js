@@ -30,9 +30,16 @@ function createInjector(modulesToLoad) {
     get: function (key) { 
       return cache[key];
     },
-    invoke: function (fn) {
-      var args = _.map(fn.$inject, function (token) { return cache[token]; });
-      return fn.apply({}, args);
+    invoke: function (fn, self, locals) {
+      var args = _.map(fn.$inject, function (token) {
+        if (_.isString(token)) {
+          return locals && locals.hasOwnProperty(token) ?
+            locals[token] : cache[token];
+        } else {
+          throw 'Incorrect injection token! Expected a string, got ' + token;
+        }
+      });
+      return fn.apply(self, args);
     }
   };
 }
