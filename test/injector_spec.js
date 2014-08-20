@@ -154,5 +154,30 @@ describe('annotate', function () {
     var fn = function (a, b) {};
     expect(injector.annotate(fn)).toEqual(['a', 'b']);
   });
+
+  it('strips comments from argument lists when parsing', function () {
+    var injector = createInjector([]);
+    var fn = function (a, /* b, */ c) {};
+    expect(injector.annotate(fn)).toEqual(['a', 'c']);
+  });
+
+  it('strips several comments from argument lists when parsing', function () {
+    var injector = createInjector([]);
+    var fn = function (a, /* b, */ c/* , d */) {};
+    expect(injector.annotate(fn)).toEqual(['a', 'c']);
+  });
+
+  it('strips // comments from argument lists when parsing', function () {
+    var injector = createInjector([]);
+    var fn = function (a, //b
+                       c) {};
+    expect(injector.annotate(fn)).toEqual(['a', 'c']);
+  });
+
+  it('strips surrounding underscores from argument names when parsing', function () {
+    var injector = createInjector([]);
+    var fn = function (a, _b_, c_, _d, an_argument) {};
+    expect(injector.annotate(fn)).toEqual(['a', 'b', 'c_', '_d', 'an_argument']);
+  });
 });
 

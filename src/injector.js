@@ -3,7 +3,8 @@
 'use strict';
 
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-var FN_ARG = /^\s*(\S+)\s*$/;
+var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
+var STRIP_COMMENTS = /(\/\/.*$)|(\/\*.*?\*\/)/mg;
 
 function createInjector(modulesToLoad) {
   function annotate(fn) {
@@ -14,9 +15,10 @@ function createInjector(modulesToLoad) {
     } else if (!fn.length) {
       return [];
     } else {
-      var argDeclaration = fn.toString().match(FN_ARGS);
+      var source = fn.toString().replace(STRIP_COMMENTS, '');
+      var argDeclaration = source.match(FN_ARGS);
       return _.map(argDeclaration[1].split(','), function (argName) {
-        return argName.match(FN_ARG)[1];
+        return argName.match(FN_ARG)[2];
       });
     }
   }
