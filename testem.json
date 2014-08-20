@@ -1,0 +1,6 @@
+{
+  "framework": "jasmine2",
+  "before_tests": "grunt jshint",
+  "serve_files": ["src/**/*.js", "test/**/*.js"],
+  "watch_files": ["src/**/*.js", "test/**/*.js"]
+}
