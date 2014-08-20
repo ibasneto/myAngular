@@ -31,6 +31,9 @@ function createInjector(modulesToLoad) {
         throw 'Incorrect injection token! Expected a string, got ' + token;
       }
     });
+    if (_.isArray(fn)) {
+      fn = _.last(fn);
+    }
     return fn.apply(self, args);
   }
 
