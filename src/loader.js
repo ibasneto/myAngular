@@ -3,9 +3,9 @@ function setupModuleLoader(window) {
     return obj[name] || (obj[name] = factory());
   }
   function createModule(name, requires, modules) {
-    function invokeLater(method) {
+    function invokeLater(method, arrayMethod) {
       return function() {
-        moduleInstance._invokeQueue.push([method, arguments]);
+        moduleInstance._invokeQueue[arrayMethod || 'push']([method, arguments]);
         return moduleInstance;
       };
     }
@@ -15,7 +15,7 @@ function setupModuleLoader(window) {
     var moduleInstance = {
       name: name,
       requires: requires,
-      constant: invokeLater('constant'),
+      constant: invokeLater('constant', 'unshift'),
       provider: invokeLater('provider'),
       _invokeQueue: []
     };
