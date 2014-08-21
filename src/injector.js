@@ -50,6 +50,8 @@ function createInjector(modulesToLoad) {
         throw new Error('Circular dependency found: ' + path.join(' <- '));
       }
       return instanceCache[name];
+    } else if (providerCache.hasOwnProperty(name)) {
+      return providerCache[name];
     } else if (providerCache.hasOwnProperty(name + 'Provider')) {
       path.unshift(name);
       instanceCache[name] = INSTANTIATING;
