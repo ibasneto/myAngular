@@ -266,5 +266,61 @@ describe('annotate', function () {
     expect(injector.has('a')).toBe(true);
     expect(injector.get('a')).toBe(42);
   });
+
+  it('injects the $get method of a provider', function () {
+    var module = angular.module('myModule', []);
+    module.constant('a', 1);
+    module.provider('b', {
+      $get: function (a) {
+        return a + 2;
+      }
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('b')).toBe(3);
+  });
+
+  it('injects the $get method of a provider lazily', function () {
+    var module = angular.module('myModule', []);
+    module.provider('b', {
+      $get: function (a) { return a + 2; }
+    });
+    module.provider('a', {
+      $get: _.constant(1)
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('b')).toBe(3);
+  });
+
+  it('instantiates a dependency only once', function () {
+    var module = angular.module('myModule', []);
+    module.provider('a', {
+      $get: function () { return {}; }
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('a')).toBe(injector.get('a'));
+  });
+
+  it('notifies the user about a circular dependency', function () {
+    var module = angular.module('myModule', []);
+    module.provider('a', {$get: function (b) {}});
+    module.provider('b', {$get: function (c) {}});
+    module.provider('c', {$get: function (a) {}});
+    var injector = createInjector(['myModule']);
+    expect(function () {
+      injector.get('a');
+    }).toThrowError(/Circular dependency found/);
+  });
+
+  it('cleans up the circular marker when instantiation fails', function () {
+    var module = angular.module('myModule', []);
+    module.provider('a', {$get: function () { throw 'Failing instantiation!'; }});
+    var injector = createInjector(['myModule']);
+    expect(function () {
+      injector.get('a');
+    }).toThrow('Failing instantiation!');
+    expect(function () {
+      injector.get('a');
+    }).toThrow('Failing instantiation!');
+  });
 });
 
