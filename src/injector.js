@@ -46,16 +46,19 @@ function createInjector(modulesToLoad) {
   function getService(name) {
     if (instanceCache.hasOwnProperty(name)) {
       if (instanceCache[name] === INSTANTIATING) {
-        throw new Error('Circular dependency found');
+        path.unshift(name);
+        throw new Error('Circular dependency found: ' + path.join(' <- '));
       }
       return instanceCache[name];
     } else if (providerCache.hasOwnProperty(name + 'Provider')) {
+      path.unshift(name);
       instanceCache[name] = INSTANTIATING;
       try {
         var provider = providerCache[name + 'Provider'];
         var instance = instanceCache[name] = invoke(provider.$get, provider);
         return instance;
       } finally {
+        path.shift();
         if (instanceCache[name] === INSTANTIATING) {
           delete instanceCache[name];
         }
@@ -66,6 +69,7 @@ function createInjector(modulesToLoad) {
   var providerCache = {};
   var instanceCache = {};
   var loadedModules = {};
+  var path = [];
   var $provide = {
     constant: function (key, value) {
       if (key === 'hasOwnProperty') {
@@ -74,6 +78,9 @@ function createInjector(modulesToLoad) {
       instanceCache[key] = value;
     },
     provider: function (key, provider) {
+      if (_.isFunction(provider)) {
+        provider = instantiate(provider);
+      }
       providerCache[key + 'Provider'] = provider;
     }
   };

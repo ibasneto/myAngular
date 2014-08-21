@@ -322,5 +322,35 @@ describe('annotate', function () {
       injector.get('a');
     }).toThrow('Failing instantiation!');
   });
+
+  it('notifies the user about a circular dependency', function () {
+    var module = angular.module('myModule', []);
+    module.provider('a', {$get: function (b) {}});
+    module.provider('b', {$get: function (c) {}});
+    module.provider('c', {$get: function (a) {}});
+    var injector = createInjector(['myModule']);
+    expect(function () {
+      injector.get('a');
+    }).toThrowError('Circular dependency found: a <- c <- b <- a');
+  });
+
+  it('instantiates a provider if given as a constructor function', function () {
+    var module = angular.module('myModule', []);
+    module.provider('a', function AProvider() {
+      this.$get = function () { return 42; };
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('a')).toBe(42);
+  });
+
+  it('injects the given provider function', function () {
+    var module = angular.module('myModule', []);
+    module.constant('b', 2);
+    module.provider('a', function AProvider(b) {
+      this.$get = function () { return 1 + b; };
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('a')).toBe(3);
+  });
 });
 
