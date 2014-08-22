@@ -582,5 +582,47 @@ describe('annotate', function () {
     var injector = createInjector(['myModule']);
     expect(injector.get('a')).toBe(injector.get('a'));
   });
+
+  it('allows registering a value', function () {
+    var module = angular.module('myModule', []);
+    module.value('a', 42);
+    var injector = createInjector(['myModule']);
+    expect(injector.get('a')).toBe(42);
+  });
+
+  it('does not make values available to config blocks', function () {
+    var module = angular.module('myModule', []);
+    module.value('a', 42);
+    module.config(function (a) {});
+    expect(function () {
+      createInjector(['myModule']);
+    }).toThrow();
+  });
+
+  it('allows registering a service', function () {
+    var module = angular.module('myModule', []);
+    module.service('aService', function MyService() {
+      this.getValue = function () { return 42; };
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('aService').getValue()).toBe(42);
+  });
+
+  it('injects service constructors with instances', function () {
+    var module =  angular.module('myModule', []);
+    module.value('theValue', 42);
+    module.service('aService', function MyService(theValue) {
+      this.getValue = function () { return theValue; };
+    });
+    var injector = createInjector(['myModule']);
+    expect(injector.get('aService').getValue()).toBe(42);
+  });
+
+  it('only instantiates services once', function () {
+    var module = angular.module('myModule', []);
+    module.service('aService', function MyService() {});
+    var injector = createInjector(['myModule']);
+    expect(injector.get('aService')).toBe(injector.get('aService'));
+  });
 });
 

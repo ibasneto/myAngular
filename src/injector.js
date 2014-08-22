@@ -102,6 +102,14 @@ function createInjector(modulesToLoad) {
     },
     factory: function (key, factoryFn) {
       this.provider(key, {$get: factoryFn});
+    },
+    value: function (key, value) {
+      this.factory(key, _.constant(value));
+    },
+    service: function (key, Constructor) {
+      this.factory(key, function () {
+        return instanceInjector.instantiate(Constructor);
+      });
     }
   };
   var runBlocks = [];
