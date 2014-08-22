@@ -2,10 +2,11 @@ function setupModuleLoader(window) {
   function ensure(obj, name, factory) {
     return obj[name] || (obj[name] = factory());
   }
-  function createModule(name, requires, modules) {
-    function invokeLater(method, arrayMethod) {
+  function createModule(name, requires, modules, configFn) {
+    function invokeLater(service, method, arrayMethod) {
       return function() {
-        moduleInstance._invokeQueue[arrayMethod || 'push']([method, arguments]);
+        var item = [service, method, arguments];
+        moduleInstance._invokeQueue[arrayMethod || 'push'](item);
         return moduleInstance;
       };
     }
@@ -15,10 +16,19 @@ function setupModuleLoader(window) {
     var moduleInstance = {
       name: name,
       requires: requires,
-      constant: invokeLater('constant', 'unshift'),
-      provider: invokeLater('provider'),
-      _invokeQueue: []
+      constant: invokeLater('$provide', 'constant', 'unshift'),
+      provider: invokeLater('$provide', 'provider'),
+      config: invokeLater('$injector', 'invoke'),
+      run: function (fn) {
+        moduleInstance._runBlocks.push(fn);
+        return moduleInstance;
+      },
+      _invokeQueue: [],
+      _runBlocks: []
     };
+    if (configFn) {
+      moduleInstance.config(configFn);
+    }
     modules[name] = moduleInstance;
     return moduleInstance;
   }
@@ -32,9 +42,9 @@ function setupModuleLoader(window) {
   var angular = ensure(window, 'angular', Object);
   ensure(angular, 'module', function () {
     var modules = {};
-    return function (name, requires) {
+    return function (name, requires, configFn) {
       if (requires) {
-        return createModule(name, requires, modules);
+        return createModule(name, requires, modules, configFn);
       } else {
         return getModule(name, modules);
       }

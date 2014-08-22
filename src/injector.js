@@ -76,17 +76,17 @@ function createInjector(modulesToLoad) {
   }
 
   var providerCache = {};
-  var providerInjector = createInternalInjector(providerCache, function () {
+  var providerInjector = providerCache.$injector = createInternalInjector(providerCache, function () {
     throw 'Unknown provider: ' + path.join(' <- ');
   });
   var instanceCache = {};
-  var instanceInjector = createInternalInjector(instanceCache, function (name) {
+  var instanceInjector = instanceCache.$injector = createInternalInjector(instanceCache, function (name) {
     var provider = providerInjector.get(name + 'Provider');
     return instanceInjector.invoke(provider.$get, provider);
   });
   var loadedModules = {};
   var path = [];
-  var $provide = {
+  providerCache.$provide = {
     constant: function (key, value) {
       if (key === 'hasOwnProperty') {
         throw 'hasOwnProperty is not a valid constant name!';
@@ -101,15 +101,27 @@ function createInjector(modulesToLoad) {
       providerCache[key + 'Provider'] = provider;
     }
   };
-  _.forEach(modulesToLoad, function loadModule(moduleName) {
-    if (!loadedModules.hasOwnProperty(moduleName)) {
-      loadedModules[moduleName] = true;
-      var module = angular.module(moduleName);
-      _.forEach(module.requires, loadModule);
-      _.forEach(module._invokeQueue, function (invokeArgs) {
-        $provide[invokeArgs[0]].apply($provide, invokeArgs[1]);
-      });
+  var runBlocks = [];
+  _.forEach(modulesToLoad, function loadModule(module) {
+    if (_.isString(module)) {
+      if (!loadedModules.hasOwnProperty(module)) {
+        loadedModules[module] = true;
+        module = angular.module(module);
+        _.forEach(module.requires, loadModule);
+        _.forEach(module._invokeQueue, function (invokeArgs) {
+          var service = providerCache[invokeArgs[0]];
+          var method = invokeArgs[1];
+          var args = invokeArgs[2];
+          service[method].apply(service, args);
+        });
+        runBlocks = runBlocks.concat(module._runBlocks);
+      }
+    } else if (_.isFunction(module) || _.isArray(module)) {
+      providerInjector.invoke(module);
     }
+  });
+  _.forEach(runBlocks, function (runBlock) {
+    instanceInjector.invoke(runBlock);
   });
   return instanceInjector;
 }
