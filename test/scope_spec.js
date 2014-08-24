@@ -167,5 +167,9 @@ describe('Scope', function () {
       scope.$digest();
       expect(scope.counter).toBe(2);
     });
+
+    it('correctly handles NaNs', function () {
+
+    });
   });
 });
