@@ -324,5 +324,22 @@ describe('Scope', function () {
       scope.$digest();
       expect(scope.counter).toBe(1);
     });
+
+    it('does no include $$postDigest in the digest', function () {
+      scope.aValue = 'original value';
+      scope.$$postDigest(function () {
+        scope.aValue = 'changed value';
+      });
+      scope.$watch(
+        function (scope) { return scope.aValue; },
+        function (newValue, oldValue, scope) {
+          scope.watchedValue = newValue;
+        }
+      );
+      scope.$digest();
+      expect(scope.watchedValue).toBe('original value');
+      scope.$digest();
+      expect(scope.watchedValue).toBe('changed value');
+    });
   });
 });
