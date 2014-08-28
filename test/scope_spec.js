@@ -482,4 +482,39 @@ describe('Scope', function () {
       expect(scope.counter).toBe(0);
     });
   });
+
+  describe('inheritance', function () {
+    it('inherits the parent\'s properties', function () {
+      var parent = new Scope();
+      parent.aValue = [1, 2, 3];
+      var child = parent.$new();
+      expect(child.aValue).toEqual([1, 2, 3]);
+    });
+  });
+
+  it('does not cause a parent to inherit its properties', function () {
+    var parent = new Scope();
+    var child = parent.$new();
+    child.aValue = [1, 2, 3];
+    expect(parent.aValue).toBeUndefined();
+  });
+
+  it('inherits the parent\'s properties whenever they are defined', function () {
+    var parent = new Scope();
+    var child = parent.$new();
+    parent.aValue = [1, 2, 3];
+    expect(child.aValue).toEqual([1, 2, 3]);
+  });
+
+  it('can manipulate a parent scope\'s property', function () {
+    var parent = new Scope();
+    var child = parent.$new();
+    parent.aValue = [1, 2, 3];
+    child.aValue.push(4);
+    expect(child.aValue).toEqual([1, 2, 3, 4]);
+    expect(parent.aValue).toEqual([1, 2, 3, 4]);
+  });
+
+  it('can watch a property in the parent', function () {
+  });
 });
