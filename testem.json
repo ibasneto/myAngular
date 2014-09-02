@@ -5,7 +5,7 @@
     "node_modules/lodash/lodash.js",
     "node_modules/jquery/dist/jquery.js",
     "src/**/*.js",
-    "test/**/*.js"
+    "test/**/scope_spec.js"
   ],
   "watch_files": ["src/**/*.js", "test/**/*.js"]
 }
