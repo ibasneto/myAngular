@@ -166,3 +166,10 @@ Scope.prototype.$destroy = function () {
     siblings.splice(indexOfThis, 1);
   }
 };
+Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
+  var internalWatchFn = function (scope) {
+  };
+  var internalListenerFn = function () {
+  };
+  return this.$watch(internalWatchFn, internalListenerFn);
+};
